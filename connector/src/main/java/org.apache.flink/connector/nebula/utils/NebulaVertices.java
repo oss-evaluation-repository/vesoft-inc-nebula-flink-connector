@@ -7,6 +7,7 @@ package org.apache.flink.connector.nebula.utils;
 
 import static org.apache.flink.connector.nebula.utils.NebulaConstant.BATCH_INSERT_TEMPLATE;
 import static org.apache.flink.connector.nebula.utils.NebulaConstant.DELETE_VERTEX_TEMPLATE;
+import static org.apache.flink.connector.nebula.utils.NebulaConstant.DELETE_VERTEX_TEMPLATE_WITH_EDGE;
 import static org.apache.flink.connector.nebula.utils.NebulaConstant.ENDPOINT_TEMPLATE;
 import static org.apache.flink.connector.nebula.utils.NebulaConstant.UPDATE_VALUE_TEMPLATE;
 import static org.apache.flink.connector.nebula.utils.NebulaConstant.UPDATE_VERTEX_TEMPLATE;
@@ -23,12 +24,23 @@ public class NebulaVertices implements Serializable {
     private List<NebulaVertex> vertices;
     private PolicyEnum policy = null;
 
+    private boolean isDeleteExecutedWithEdges;
+
     public NebulaVertices(String tagName, List<String> propNames, List<NebulaVertex> vertices,
                           PolicyEnum policy) {
         this.tagName = tagName;
         this.propNames = propNames;
         this.vertices = vertices;
         this.policy = policy;
+    }
+
+    public NebulaVertices(String tagName, List<String> propNames, List<NebulaVertex> vertices,
+                          PolicyEnum policy, boolean isDeleteExecutedWithEdges) {
+        this.tagName = tagName;
+        this.propNames = propNames;
+        this.vertices = vertices;
+        this.policy = policy;
+        this.isDeleteExecutedWithEdges = isDeleteExecutedWithEdges;
     }
 
     public String getPropNames() {
@@ -110,7 +122,10 @@ public class NebulaVertices implements Serializable {
             String vertexId = getVertexId(vertex);
             vertexIds.add(vertexId);
         }
-        return String.format(DELETE_VERTEX_TEMPLATE, String.join(",", vertexIds));
+        String template = isDeleteExecutedWithEdges
+                ? DELETE_VERTEX_TEMPLATE_WITH_EDGE
+                : DELETE_VERTEX_TEMPLATE;
+        return String.format(template, String.join(",", vertexIds));
     }
 
     /**
